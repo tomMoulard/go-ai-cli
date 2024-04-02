@@ -15,6 +15,8 @@ type ContextHolder struct {
 	CancelFn   func()
 }
 
+var _ IContextService = (*ContextService)(nil)
+
 type ContextService struct {
 	Contexts []ContextHolder
 }

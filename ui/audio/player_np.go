@@ -12,7 +12,7 @@ type AudioPlayerModel struct {
 	transitionModel *transition.Model
 }
 
-func NewPlayerModel(pc *service.PromptConfig) (*AudioPlayerModel, error) {
+func NewPlayerModel(pc *service.Services) (*AudioPlayerModel, error) {
 
 	return &AudioPlayerModel{
 		transitionModel: transition.NewTransitionModel("Portaudio not found"),

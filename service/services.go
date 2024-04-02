@@ -12,7 +12,7 @@ type Services struct {
 	PreviousPrompt string
 	UserPrompt     string
 	UpdateChan     chan ChatMessage
-	Contexts       IContextService
+	Contexts       *ContextService
 	Files          IFileService
 }
 
