@@ -12,7 +12,7 @@ type MP3Chunks struct {
 
 var _ io.ReadCloser = (*MP3Chunks)(nil)
 
-func NewMP3Chunks(content []byte) *MP3Chunks {
+func NewMP3Chunks() *MP3Chunks {
 	return &MP3Chunks{
 		rcs: []io.ReadCloser{},
 	}

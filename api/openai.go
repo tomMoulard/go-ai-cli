@@ -1,7 +1,6 @@
 package api
 
 import (
-	"bytes"
 	"context"
 	"encoding/base64"
 	"fmt"
@@ -13,7 +12,6 @@ import (
 	"github.com/samber/lo"
 	"github.com/sashabaranov/go-openai"
 	"github.com/spf13/viper"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/MohammadBnei/go-ai-cli/config"
 )
@@ -92,15 +90,22 @@ func TextToSpeech(ctx context.Context, content string) (io.ReadCloser, error) {
 		return s, nil
 	}
 
-	var g errgroup.Group
+	s, err := c.CreateSpeech(ctx, openai.CreateSpeechRequest{
+		Model:          openai.TTSModel1,
+		ResponseFormat: openai.SpeechResponseFormatMp3,
+		Input:          parts[0],
+		Voice:          openai.VoiceNova,
+	})
+	if err != nil {
+		return nil, err
+	}
 
-	responses := make(map[int]io.ReadCloser)
+	rcResponse := NewMP3Chunks()
+	rcResponse.Add(s)
 
-	for index, p := range parts {
-		currentIndex := index
-		currentTextPart := p
-		g.Go(func() error {
-
+	go func() error {
+		for _, p := range parts[1:] {
+			currentTextPart := p
 			s, err := c.CreateSpeech(ctx, openai.CreateSpeechRequest{
 				Model:          openai.TTSModel1,
 				ResponseFormat: openai.SpeechResponseFormatMp3,
@@ -110,33 +115,13 @@ func TextToSpeech(ctx context.Context, content string) (io.ReadCloser, error) {
 			if err != nil {
 				return err
 			}
-			responses[currentIndex] = s
+			rcResponse.Add(s)
 
-			return nil
-		})
-	}
-
-	if err := g.Wait(); err != nil {
-		return nil, err
-	}
-
-	response := io.NopCloser(io.MultiReader(bytes.NewReader([]byte(""))))
-
-	for i := range len(parts) {
-		originalData, err := io.ReadAll(response)
-		if err != nil {
-			return nil, err
 		}
-		newData, err := io.ReadAll(responses[i])
-		if err != nil {
-			return nil, err
-		}
+		return nil
+	}()
 
-		updatedData := append(originalData, newData...)
-		response = io.NopCloser(io.MultiReader(bytes.NewReader(updatedData)))
-	}
-
-	return response, nil
+	return rcResponse, nil
 }
 
 func SendImageToOpenAI(ctx context.Context, prompt string, images ...[]byte) (chan string, error) {

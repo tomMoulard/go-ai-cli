@@ -3,7 +3,6 @@ package agent
 import (
 	"context"
 
-	"github.com/MohammadBnei/go-ai-cli/api"
 	"github.com/tmc/langchaingo/agents"
 	"github.com/tmc/langchaingo/chains"
 	"github.com/tmc/langchaingo/llms"
@@ -11,6 +10,8 @@ import (
 	"github.com/tmc/langchaingo/tools"
 	"github.com/tmc/langchaingo/tools/duckduckgo"
 	"github.com/tmc/langchaingo/tools/scraper"
+
+	"github.com/MohammadBnei/go-ai-cli/api"
 )
 
 func NewAutoWebSearchAgent(llm llms.Model) (*agents.Executor, error) {
@@ -30,14 +31,9 @@ func NewAutoWebSearchAgent(llm llms.Model) (*agents.Executor, error) {
 		scrap,
 	}
 
-	executor, err := agents.Initialize(llm, t, agents.ZeroShotReactDescription,
-		agents.WithMaxIterations(5),
-	)
-	if err != nil {
-		return nil, err
-	}
+	executor := agents.NewExecutor(agents.NewOneShotAgent(llm, t, agents.WithMaxIterations(5)), t, agents.WithMaxIterations(5))
 
-	return &executor, nil
+	return executor, nil
 }
 
 type SearchInputDesigner struct {
