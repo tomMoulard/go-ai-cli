@@ -1,0 +1,16 @@
+run: true
+timeout: 5m
+linters:
+  enable:
+    - govet
+    - golint
+    - staticcheck
+    - errcheck
+    - gosimple
+    - unused
+    - deadcode
+    - ineffassign
+    - structcheck
+    - varcheck
+exclude:
+  - vendor
